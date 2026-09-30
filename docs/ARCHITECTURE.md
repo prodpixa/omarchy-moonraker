@@ -4,10 +4,10 @@
 
 | File | Role |
 |------|------|
-| `manifest.json` | Omarchy plugin manifest: id `pixa.moonraker`, kind `bar-widget`, entry point `Panel.qml`, defaults, and the settings schema. |
+| `manifest.json` | Omarchy plugin manifest: id `io.github.prodpixa.moonraker`, kind `bar-widget`, entry point `Panel.qml`, defaults, and the settings schema. |
 | `Panel.qml` | The widget: bar chip, popup, HTTP client, polling, settings persistence, and IPC. |
 | `Model.js` | Pure helpers with no QML state: URL normalization, state labels, ETA math, formatting, chamber detection, and bar text. |
-| `dev/install.sh` | Copies the plugin into `~/.config/omarchy/plugins/pixa.moonraker` and restarts the shell. |
+| `dev/install.sh` | Copies the plugin into `~/.config/omarchy/plugins/io.github.prodpixa.moonraker` and restarts the shell. |
 | `dev/mock_moonraker.py` | Fake Moonraker with switchable scenarios, for development and screenshots. |
 | `dev/assets/thumbnail.png` | Thumbnail the mock serves for its fake job. |
 | `dev/screenshots.sh` | Walks the widget through every state and captures `docs/screenshots/`. |
@@ -22,7 +22,7 @@
   `run()`, `shell.updateEntryInline()`, …). Colors bind to it, so a theme change
   repaints the widget immediately.
 - `settings`: the widget's entry from `shell.json`.
-- `moduleName`: `pixa.moonraker`.
+- `moduleName`: `io.github.prodpixa.moonraker`.
 
 The UI is built from the shell's own kit, `qs.Ui` (`WidgetButton`,
 `KeyboardPanel`, `PanelKeyCatcher`, `Button`, `ButtonGroup`, `TextField`,

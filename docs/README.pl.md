@@ -42,11 +42,11 @@ Potem kliknij ikonkę drukarki. Popup otworzy się na ustawieniach: wpisz adres
 ## Odinstalowanie
 
 ```bash
-omarchy plugin remove pixa.moonraker
+omarchy plugin remove io.github.prodpixa.moonraker
 ```
 
 Usuwa widget z baru, jego ustawienia (razem z API key) z `shell.json` i folder
-pluginu. `omarchy plugin disable pixa.moonraker` też usuwa widget i ustawienia, ale zostawia folder.
+pluginu. `omarchy plugin disable io.github.prodpixa.moonraker` też usuwa widget i ustawienia, ale zostawia folder.
 
 ## Obsługa
 
@@ -77,11 +77,11 @@ Klucz API jest zapisany w `shell.json` otwartym tekstem, tak jak inne ustawienia
 ## Sterowanie ze skryptów
 
 ```bash
-omarchy-shell pixa.moonraker status          # stan w JSON (bez API key)
-omarchy-shell pixa.moonraker refresh
-omarchy-shell pixa.moonraker cycleDisplay
-omarchy-shell pixa.moonraker showSettings
-omarchy-shell pixa.moonraker configure '{"display":"full"}'
+omarchy-shell io.github.prodpixa.moonraker status          # stan w JSON (bez API key)
+omarchy-shell io.github.prodpixa.moonraker refresh
+omarchy-shell io.github.prodpixa.moonraker cycleDisplay
+omarchy-shell io.github.prodpixa.moonraker showSettings
+omarchy-shell io.github.prodpixa.moonraker configure '{"display":"full"}'
 ```
 
 ## Dla deweloperów

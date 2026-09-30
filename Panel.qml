@@ -11,8 +11,8 @@ import "Model.js" as Model
 // optional API key as X-Api-Key, so it works over VPNs and untrusted networks.
 Panel {
   id: root
-  moduleName: "pixa.moonraker"
-  ipcTarget: "pixa.moonraker"
+  moduleName: "io.github.prodpixa.moonraker"
+  ipcTarget: "io.github.prodpixa.moonraker"
   // Own the IpcHandler so the target can expose refresh/cycleDisplay too.
   manageIpc: false
 
@@ -341,7 +341,7 @@ Panel {
   }
 
   IpcHandler {
-    target: "pixa.moonraker"
+    target: "io.github.prodpixa.moonraker"
 
     function open(): void { root.open() }
     function close(): void { root.close() }

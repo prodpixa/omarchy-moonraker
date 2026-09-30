@@ -33,9 +33,9 @@ omarchy plugin add https://github.com/prodpixa/omarchy-moonraker.git --enable
 Or manually:
 
 ```bash
-git clone https://github.com/prodpixa/omarchy-moonraker.git ~/.config/omarchy/plugins/pixa.moonraker
+git clone https://github.com/prodpixa/omarchy-moonraker.git ~/.config/omarchy/plugins/io.github.prodpixa.moonraker
 omarchy-shell shell rescanPlugins
-omarchy plugin enable pixa.moonraker right
+omarchy plugin enable io.github.prodpixa.moonraker right
 ```
 
 Then click the printer icon in the bar. The popup opens on the Settings form.
@@ -59,12 +59,12 @@ VPN or from another subnet. On the same LAN many printers work without one.
 ## Uninstall
 
 ```bash
-omarchy plugin remove pixa.moonraker
+omarchy plugin remove io.github.prodpixa.moonraker
 ```
 
 This removes the widget from the bar, deletes its settings (including the API
 key) from `~/.config/omarchy/shell.json`, and deletes the plugin folder.
-`omarchy plugin disable pixa.moonraker` also removes the widget and its settings
+`omarchy plugin disable io.github.prodpixa.moonraker` also removes the widget and its settings
 but keeps the folder.
 
 ## Using it
@@ -97,7 +97,7 @@ The Settings section in the popup writes these values to the widget's entry in
 
 ```json
 {
-  "id": "pixa.moonraker",
+  "id": "io.github.prodpixa.moonraker",
   "url": "http://192.168.1.50",
   "apiKey": "",
   "display": "full",
@@ -125,12 +125,12 @@ The API key is stored in plain text in `shell.json`, like every other Omarchy wi
 ## Scripting (IPC)
 
 ```bash
-omarchy-shell pixa.moonraker toggle          # open/close the popup
-omarchy-shell pixa.moonraker showSettings    # open the popup on the settings form
-omarchy-shell pixa.moonraker refresh         # poll now
-omarchy-shell pixa.moonraker cycleDisplay    # next bar style
-omarchy-shell pixa.moonraker status          # JSON snapshot (never includes the API key)
-omarchy-shell pixa.moonraker configure '{"url":"http://printer","display":"full"}'
+omarchy-shell io.github.prodpixa.moonraker toggle          # open/close the popup
+omarchy-shell io.github.prodpixa.moonraker showSettings    # open the popup on the settings form
+omarchy-shell io.github.prodpixa.moonraker refresh         # poll now
+omarchy-shell io.github.prodpixa.moonraker cycleDisplay    # next bar style
+omarchy-shell io.github.prodpixa.moonraker status          # JSON snapshot (never includes the API key)
+omarchy-shell io.github.prodpixa.moonraker configure '{"url":"http://printer","display":"full"}'
 ```
 
 `status` output:
