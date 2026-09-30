@@ -56,6 +56,17 @@ Enter the Moonraker URL (and the API key if your printer needs one), then click
 The key is only needed when Moonraker doesn't trust your address, e.g. over a
 VPN or from another subnet. On the same LAN many printers work without one.
 
+## Uninstall
+
+```bash
+omarchy plugin remove pixa.moonraker
+```
+
+This removes the widget from the bar, deletes its settings (including the API
+key) from `~/.config/omarchy/shell.json`, and deletes the plugin folder.
+`omarchy plugin disable pixa.moonraker` also removes the widget and its settings
+but keeps the folder.
+
 ## Using it
 
 | Action        | Result |

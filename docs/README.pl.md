@@ -39,6 +39,15 @@ omarchy plugin add https://github.com/prodpixa/omarchy-moonraker.git --enable
 Potem kliknij ikonkę drukarki. Popup otworzy się na ustawieniach: wpisz adres
 (np. `http://192.168.1.50`), opcjonalnie API key, i kliknij **Save & connect**.
 
+## Odinstalowanie
+
+```bash
+omarchy plugin remove pixa.moonraker
+```
+
+Usuwa widget z baru, jego ustawienia (razem z API key) z `shell.json` i folder
+pluginu. `omarchy plugin disable pixa.moonraker` też usuwa widget i ustawienia, ale zostawia folder.
+
 ## Obsługa
 
 | Akcja | Efekt |
