@@ -124,10 +124,18 @@ omarchy-shell pixa.moonraker configure '{"url":"http://printer","display":"full"
 `status` output:
 
 ```json
-{"configured":true,"online":true,"state":"printing","auth":true,"klippy":"ready",
- "file":"benchy.gcode","progress":0.42,"remaining":6720,
- "temps":{"nozzle":{"temperature":219.6,"target":220}, "...": "..."},"error":""}
+{
+  "configured": true, "online": true, "auth": true, "klippy": "ready",
+  "state": "printing", "file": "benchy.gcode", "progress": 0.42, "remaining": 6720,
+  "temps": {
+    "nozzle": {"key": "nozzle", "temperature": 219.6, "target": 220},
+    "bed": {"key": "bed", "temperature": 60.1, "target": 60}
+  },
+  "error": ""
+}
 ```
+
+The real output is a single line.
 
 ## Troubleshooting
 

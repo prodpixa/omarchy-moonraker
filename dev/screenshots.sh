@@ -25,8 +25,11 @@ mkdir -p "$OUT"
 rm -f "$OUT"/*.png
 
 read -r MON_W < <(hyprctl monitors -j | jq -r '.[0].width')
-BAR_REGION="$((MON_W - 700)),0 700x52"
-POP_REGION="$((MON_W - 700)),44 700x1000"
+# Bar geometry from its layer surface, so nothing below the bar gets captured.
+read -r BAR_Y BAR_H < <(hyprctl layers -j |
+  jq -r '[.. | objects | select(.namespace? == "omarchy-bar")][0] | "\(.y) \(.h)"')
+BAR_REGION="$((MON_W - 700)),$((BAR_Y > 3 ? BAR_Y - 3 : 0)) 700x$((BAR_H + 6))"
+POP_REGION="$((MON_W - 700)),$((BAR_Y + BAR_H + 2)) 700x1000"
 
 ORIGINAL=$(jq -c --arg id "$ID" '[.bar.layout[][] | select(.id == $id)][0]' "$CFG")
 [[ $ORIGINAL != null ]] || { echo "Enable $ID in the bar first" >&2; exit 1; }
