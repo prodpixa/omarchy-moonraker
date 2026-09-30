@@ -8,7 +8,7 @@ Qidi (tested on a Q2), Voron, RatRig, Creality K-series with Klipper, and others
   <img src="docs/screenshots/08-printing.png" width="400" alt="Popup while printing">
 </p>
 <p align="center">
-  <img src="13-bar-full-bar.png" alt="Bar while printing">
+  <img src="docs/screenshots/13-bar-full-bar.png" alt="Bar while printing">
 </p>
 
 ## Features
