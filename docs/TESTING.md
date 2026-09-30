@@ -1,0 +1,75 @@
+# Testing
+
+## Install your working copy
+
+```bash
+./dev/install.sh     # copy to ~/.config/omarchy/plugins/pixa.moonraker, restart the shell
+omarchy plugin enable pixa.moonraker right   # first time only
+omarchy plugin validate .                    # manifest check
+```
+
+## Mock printer
+
+`dev/mock_moonraker.py` is a small fake Moonraker. It lets you work on any
+state without waiting for a real print.
+
+```bash
+./dev/mock_moonraker.py --scenario printing --require-key demo-key
+omarchy-shell pixa.moonraker configure '{"url":"http://127.0.0.1:7125","apiKey":"demo-key"}'
+```
+
+- By default the fake job gets synthesized metadata and `dev/assets/thumbnail.png`.
+- `--upstream`/`--api-key`/`--file`: proxy file metadata and thumbnails to a real printer instead.
+- `--require-key`: reject requests without this key (tests the auth states).
+- Pause / resume / cancel from the popup change the mock's state.
+
+Switch scenarios while it runs:
+
+```bash
+curl -X POST http://127.0.0.1:7125/mock/scenario/paused
+curl http://127.0.0.1:7125/mock/scenarios
+```
+
+Scenarios: `idle`, `heating`, `printing-start`, `printing`, `printing-end`,
+`paused`, `complete`, `cancelled`, `error`, `klippy-startup`,
+`klippy-shutdown`, `klippy-disconnected`.
+
+## Screenshots of every state
+
+```bash
+./dev/screenshots.sh
+# or with a real file's metadata and thumbnail:
+UPSTREAM=http://192.168.1.50 UPSTREAM_KEY=REAL_KEY FILE="file.gcode" ./dev/screenshots.sh
+```
+
+The script:
+
+1. backs up `shell.json`, leaves only this widget in the bar's right section
+   (so none of your other widgets appear in the shots), restarts the shell,
+   and starts the mock with a required key,
+2. drives the widget through configuration states (no URL, unreachable,
+   missing key, wrong key) and then every print scenario, using the
+   `configure`, `refresh`, and `open` IPC calls,
+3. saves the bar chip (`*-bar.png`) and the popup (`*.png`) for each state
+   into `docs/screenshots/`,
+4. restores `shell.json` from the backup and restarts the shell on exit.
+
+Bar chips are trimmed to the widget by `dev/crop_bar.py`. Popups are cropped
+by `dev/crop_popup.py`. It finds the card from the difference between a closed
+and an open shot, then trims to the card's own border. Each open shot is retaken until two in a row are identical, so the
+open animation has finished.
+
+Requirements: `grim`, `jq`, `python-pillow`, and a horizontal bar at the top.
+
+## Manual checklist (real printer)
+
+- [ ] Fresh install: the popup opens on Settings, and Save & connect works
+- [ ] Wrong key → *Unauthorized*, then fixing the key recovers without a restart
+- [ ] Unplug the network or stop the VPN → *Unreachable*, and it recovers by itself
+- [ ] Start a print: *Heating* → *Printing* with the thumbnail, then time left looks sane after ~5%
+- [ ] Pause from the popup → printer pauses, then Resume continues
+- [ ] Cancel: the first click arms, the second click within 3 s cancels
+- [ ] Right click cycles the styles and survives `omarchy restart shell`
+- [ ] Middle click opens the web UI
+- [ ] `omarchy theme set <other>` repaints the widget and popup
+- [ ] Bar on the left/right edge (vertical): the chip shows the icon only

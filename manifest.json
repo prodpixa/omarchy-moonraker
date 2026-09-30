@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "pixa.moonraker",
+  "name": "Moonraker Printer",
+  "version": "0.1.0",
+  "author": "pixa",
+  "license": "MIT",
+  "description": "3D printer status for any Klipper/Moonraker printer: progress, time left, and temperatures in the bar with a detail panel.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "3D Printer",
+    "description": "Moonraker print progress, time remaining, and temperatures. Left click for details and settings, right click to cycle the bar display, middle click to open the printer's web UI.",
+    "category": "Info",
+    "aliases": ["moonraker", "klipper", "3d-printer", "printer"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "url": "",
+      "apiKey": "",
+      "display": "progress",
+      "temps": ["nozzle", "bed"],
+      "pollInterval": 5,
+      "hideWhenIdle": false,
+      "hideWhenOffline": false
+    },
+    "schema": [
+      {
+        "key": "url",
+        "type": "string",
+        "label": "Moonraker URL",
+        "description": "Address of the printer, e.g. http://192.168.1.50 or http://printer.local:7125.",
+        "defaultValue": ""
+      },
+      {
+        "key": "apiKey",
+        "type": "string",
+        "label": "API key",
+        "description": "Moonraker API key (Mainsail/Fluidd: Settings > Authorization). Needed when the printer does not trust your address, e.g. over a VPN.",
+        "defaultValue": ""
+      },
+      {
+        "key": "display",
+        "type": "enum",
+        "label": "Bar display",
+        "description": "icon: icon only · progress: percent and time left · full: progress plus temperatures.",
+        "options": ["icon", "progress", "full"],
+        "defaultValue": "progress"
+      },
+      {
+        "key": "temps",
+        "type": "multiselect",
+        "label": "Temperatures in bar",
+        "description": "Which temperatures the 'full' display shows.",
+        "options": [
+          { "value": "nozzle", "label": "Nozzle" },
+          { "value": "bed", "label": "Bed" },
+          { "value": "chamber", "label": "Chamber" }
+        ]
+      },
+      {
+        "key": "chamberObject",
+        "type": "string",
+        "label": "Chamber sensor object",
+        "description": "Optional Klipper object for the chamber temperature. Auto-detected when empty.",
+        "defaultValue": ""
+      },
+      {
+        "key": "pollInterval",
+        "type": "integer",
+        "label": "Refresh interval (seconds)",
+        "min": 2,
+        "max": 120,
+        "step": 1,
+        "defaultValue": 5
+      },
+      {
+        "key": "hideWhenIdle",
+        "type": "boolean",
+        "label": "Hide when not printing",
+        "defaultValue": false
+      },
+      {
+        "key": "hideWhenOffline",
+        "type": "boolean",
+        "label": "Hide when the printer is offline",
+        "defaultValue": false
+      }
+    ]
+  }
+}
