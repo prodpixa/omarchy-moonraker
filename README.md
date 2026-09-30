@@ -154,7 +154,7 @@ The real output is a single line.
 
 - [docs/STATES.md](docs/STATES.md): every state with screenshots
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the widget works internally and which Moonraker APIs it calls
-- [docs/TESTING.md](docs/TESTING.md): mock printer, screenshot automation, and a manual test checklist
+- [CONTRIBUTING.md](CONTRIBUTING.md): reporting bugs, the development setup, the mock printer, and a test checklist
 - [docs/README.pl.md](docs/README.pl.md): the same overview in Polish
 
 ## License

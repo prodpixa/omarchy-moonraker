@@ -1,4 +1,25 @@
-# Testing
+# Contributing
+
+Thanks for helping out! Bug reports, printer compatibility notes, and pull
+requests are all welcome.
+
+## Reporting a bug
+
+Please include:
+
+- your printer and firmware (e.g. Qidi Q2, Voron 2.4 with Mainsail)
+- what the popup says, plus a screenshot if you can
+- the output of `omarchy-shell pixa.moonraker status` (it never contains your API key)
+- your Omarchy version (`omarchy version`)
+
+If your printer uses an unusual chamber sensor or reports progress
+differently, the output of `curl http://<printer>/printer/objects/list` helps a lot.
+
+## Project layout
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the widget works.
+In short, `Panel.qml` is the widget, `Model.js` holds the pure logic, and
+`dev/` holds the tooling described below.
 
 ## Install your working copy
 
@@ -60,6 +81,14 @@ and an open shot, then trims to the card's own border. Each open shot is retaken
 open animation has finished.
 
 Requirements: `grim`, `jq`, `python-pillow`, and a horizontal bar at the top.
+
+## Before opening a pull request
+
+- Run `omarchy plugin validate .`
+- Try your change against the mock in the states it touches
+- If the look changed, regenerate the screenshots with `./dev/screenshots.sh`
+- Add a line to [CHANGELOG.md](CHANGELOG.md)
+- For bigger changes, also go through the checklist below on a real printer
 
 ## Manual checklist (real printer)
 

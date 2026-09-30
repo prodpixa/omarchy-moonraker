@@ -84,4 +84,4 @@ omarchy-shell pixa.moonraker configure '{"display":"full"}'
 Więcej informacji:
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): jak to działa w środku,
-- [TESTING.md](TESTING.md): testowanie, w tym lista kontrolna na prawdziwej drukarce.
+- [CONTRIBUTING.md](../CONTRIBUTING.md): zgłaszanie błędów, środowisko deweloperskie i testowanie, w tym lista kontrolna na prawdziwej drukarce.
