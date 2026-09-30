@@ -23,6 +23,7 @@ Panel {
   readonly property var barTemps: Model.normalizeTemps(setting("temps", ["nozzle", "bed"]))
   readonly property int pollSeconds: Math.max(2, Math.min(120, Number(setting("pollInterval", 5)) || 5))
   readonly property bool hideWhenIdle: setting("hideWhenIdle", false) === true
+  readonly property bool compactWhenIdle: setting("compactWhenIdle", false) === true
   readonly property bool hideWhenOffline: setting("hideWhenOffline", false) === true
   readonly property bool configured: baseUrl !== ""
 
@@ -89,6 +90,7 @@ Panel {
     configured: root.configured,
     online: root.online,
     authFailed: root.authFailed,
+    compact: root.compactNow,
     heating: root.heating,
     klippyState: root.klippyState,
     state: root.printState,
@@ -107,8 +109,14 @@ Panel {
     return Model.stateLabel(printState, klippyState)
   }
 
+  // Fully hidden only through shell.json/IPC: the settings live in this
+  // widget's own popup, so the popup must never offer a way to hide it.
   readonly property bool hiddenByRule: (hideWhenOffline && configured && !online)
     || (hideWhenIdle && configured && online && !printing)
+
+  // Compact: a dimmed icon while nothing is printing, still clickable.
+  readonly property bool compactNow: compactWhenIdle && configured && online
+    && klippyReady && !printing && printState !== "error"
 
   // ---------- Settings persistence ----------
   function saveSettings(patch) {
@@ -355,7 +363,7 @@ Panel {
       var patch
       try { patch = JSON.parse(json) } catch (e) { return "invalid JSON" }
       if (!patch || typeof patch !== "object" || Array.isArray(patch)) return "expected a JSON object"
-      var allowed = ["url", "apiKey", "display", "temps", "pollInterval", "hideWhenIdle", "hideWhenOffline", "chamberObject"]
+      var allowed = ["url", "apiKey", "display", "temps", "pollInterval", "compactWhenIdle", "hideWhenIdle", "hideWhenOffline", "chamberObject"]
       var clean = {}
       for (var k in patch) {
         if (allowed.indexOf(k) < 0) return "unknown setting: " + k
@@ -405,7 +413,7 @@ Panel {
     fontSize: root.iconOnly || button.vertical ? Style.bar.iconFont : Style.font.body
     fixedWidth: root.iconOnly && !button.vertical ? Style.bar.iconSlot : -1
     active: root.problem
-    dimmed: !root.configured || (root.everConnected && !root.online)
+    dimmed: !root.configured || (root.everConnected && !root.online) || root.compactNow
     tooltipText: ""
     onPressed: function(b) {
       if (b === Qt.RightButton) root.cycleDisplay()
@@ -799,12 +807,13 @@ Panel {
 
           Toggle {
             width: parent.width
-            label: "Hide when not printing"
-            checked: root.hideWhenIdle
+            label: "Compact when not printing"
+            description: "Only a dimmed icon until a print starts"
+            checked: root.compactWhenIdle
             foreground: root.fg
             fontFamily: root.fontFamily
             titleSize: Style.font.bodySmall
-            onClicked: root.saveSettings({ hideWhenIdle: !root.hideWhenIdle })
+            onClicked: root.saveSettings({ compactWhenIdle: !root.compactWhenIdle })
           }
         }
       }

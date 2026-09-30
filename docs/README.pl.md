@@ -68,7 +68,8 @@ Zapisują się we wpisie widgetu w `~/.config/omarchy/shell.json`:
 | `display` | styl w barze: `icon`, `progress` albo `full` |
 | `temps` | temperatury w stylu `full`: `nozzle`, `bed`, `chamber` |
 | `pollInterval` | co ile sekund odświeżać (domyślnie 5; w trakcie druku i przy otwartym popupie co najwyżej 3 s) |
-| `hideWhenIdle` | ukryj widget, gdy nic się nie drukuje |
+| `compactWhenIdle` | gdy nic się nie drukuje, pokazuj tylko przygaszoną ikonkę (dalej klikalną); to przełącznik w popupie |
+| `hideWhenIdle` | całkowicie ukryj widget, dopóki nic się nie drukuje. Ustawienia są w popupie widgetu, więc ta opcja jest dostępna tylko w `shell.json` albo przez IPC. Żeby go przywrócić: `omarchy-shell io.github.prodpixa.moonraker configure '{"hideWhenIdle":false}'` |
 | `hideWhenOffline` | ukryj widget, gdy drukarka jest niedostępna |
 | `chamberObject` | obiekt Klippera z temperaturą komory; pusty oznacza automatyczne wykrywanie |
 

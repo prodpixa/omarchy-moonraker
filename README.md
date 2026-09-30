@@ -103,6 +103,7 @@ The Settings section in the popup writes these values to the widget's entry in
   "display": "full",
   "temps": ["nozzle", "bed", "chamber"],
   "pollInterval": 5,
+  "compactWhenIdle": false,
   "hideWhenIdle": false,
   "hideWhenOffline": false,
   "chamberObject": ""
@@ -116,7 +117,8 @@ The Settings section in the popup writes these values to the widget's entry in
 | `display`         | `progress`          | `icon`, `progress`, or `full`. |
 | `temps`           | `["nozzle","bed"]`  | Temperatures shown in `full` style: `nozzle`, `bed`, `chamber`. |
 | `pollInterval`    | `5`                 | Seconds between refreshes (2–120). Capped at 3 s while printing or while the popup is open. |
-| `hideWhenIdle`    | `false`             | Show the widget only while a print is running or paused. |
+| `compactWhenIdle` | `false`            | Show only a dimmed icon while nothing is printing. The widget stays clickable. This is the toggle in the popup. |
+| `hideWhenIdle`    | `false`             | Hide the widget completely until a print starts. Because the settings live in the widget's popup, this one is only available in `shell.json` or over IPC. To show the widget again: `omarchy-shell io.github.prodpixa.moonraker configure '{"hideWhenIdle":false}'`. |
 | `hideWhenOffline` | `false`             | Hide the widget while the printer can't be reached. |
 | `chamberObject`   | auto                | Klipper object for the chamber temperature, e.g. `temperature_sensor chamber`. Detected automatically when empty. |
 

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.prodpixa.moonraker",
   "name": "Moonraker Printer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "prodpixa",
   "license": "MIT",
   "description": "3D printer status for any Klipper/Moonraker printer: progress, time left, and temperatures in the bar with a detail panel.",
@@ -25,6 +25,7 @@
       "display": "progress",
       "temps": ["nozzle", "bed"],
       "pollInterval": 5,
+      "compactWhenIdle": false,
       "hideWhenIdle": false,
       "hideWhenOffline": false
     },
@@ -79,9 +80,17 @@
         "defaultValue": 5
       },
       {
+        "key": "compactWhenIdle",
+        "type": "boolean",
+        "label": "Compact when not printing",
+        "description": "Show only a dimmed icon until a print starts. The widget stays clickable.",
+        "defaultValue": false
+      },
+      {
         "key": "hideWhenIdle",
         "type": "boolean",
         "label": "Hide when not printing",
+        "description": "Hide the widget completely until a print starts. Its settings can then only be changed in shell.json or over IPC.",
         "defaultValue": false
       },
       {

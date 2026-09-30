@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 — 2026-09-30
+
+- Fix: the popup's "Hide when not printing" toggle hid the whole widget, and
+  with it the popup needed to turn the option back off. The toggle is now
+  **Compact when not printing** (`compactWhenIdle`): a dimmed icon that stays
+  clickable. Full hiding (`hideWhenIdle`) is still available through
+  `shell.json` or IPC, with the command to undo it documented.
+
 ## 0.1.0 — 2026-09-30
 
 First release.

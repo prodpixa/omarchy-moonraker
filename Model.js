@@ -223,6 +223,7 @@ function barText(data, display, temps) {
   if (data.authFailed) return ICONS.lock
   if (!data.online) return ICONS.offline
   if (data.klippyState && data.klippyState !== "ready") return ICONS.alert
+  if (data.compact) return data.state === "complete" ? ICONS.check : ICONS.printer
 
   var parts = []
   var active = isActiveState(data.state)
