@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.prodpixa.moonraker",
   "name": "Moonraker Printer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "prodpixa",
   "license": "MIT",
   "description": "3D printer status for any Klipper/Moonraker printer: progress, time left, and temperatures in the bar with a detail panel.",

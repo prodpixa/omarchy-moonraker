@@ -28,7 +28,7 @@ K-series z Klipperem i innymi.
 - **API key**: dzięki niemu działa przez VPN i z innych sieci.
 - **Wygląd jak natywny**: kolory, czcionka i kontrolki pochodzą z Omarchy,
   więc widget zmienia się razem z `omarchy theme set`.
-- **Zero zależności**: zapytania HTTP idą prosto z QML, bez curla i skryptów.
+- **Lekko i bezpiecznie**: każde zapytanie to krótkie wywołanie `curl` (jest w każdej instalacji Arch) z limitem 1 MB i 10 s, więc źle działająca drukarka nie zawiesi ani nie zapcha shella.
 
 ## Instalacja
 

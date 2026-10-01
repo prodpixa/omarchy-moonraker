@@ -21,7 +21,7 @@ printer icon, and the popup opens straight on the Settings form.
 
 ### Unreachable
 
-The URL doesn't answer, or a request hangs for more than 8 seconds. Causes
+The URL doesn't answer, or a request takes longer than 10 seconds. Causes
 include a wrong address, the printer being off, or the VPN being down. The
 chip dims and shows a disconnected-network icon.
 

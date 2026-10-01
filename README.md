@@ -22,7 +22,7 @@ Qidi (tested on a Q2), Voron, RatRig, Creality K-series with Klipper, and others
 - **API key support**: works over a VPN or anywhere the printer doesn't trust your IP
 - **Native look**: colors, font, borders, and controls come from the Omarchy
   shell, so the widget follows `omarchy theme set` like the built-in widgets
-- **No dependencies**: talks to Moonraker over HTTP from QML, with no curl or scripts
+- **Bounded and lightweight**: one short `curl` call per request (curl ships with every Arch install), capped at 1 MB and 10 seconds, so a misbehaving printer can't stall or bloat your shell
 
 ## Install
 

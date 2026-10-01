@@ -42,6 +42,14 @@ SCENARIOS = {
     "klippy-disconnected": (None,     0.00, None,       (0, 0, 0),     "Klippy Disconnected"),
 }
 
+# Misbehaving-server scenarios: a normal print, except for the abuse named.
+ABUSE = {
+    "flood": "status query streams an endless chunked body",
+    "flood-declared": "status query declares a 500 MB Content-Length",
+    "hang": "status query never answers",
+    "huge-thumbnail": "thumbnail streams an endless body",
+}
+
 args = None
 scenario = {"name": "printing"}
 tokens = set()
@@ -55,8 +63,29 @@ def temps(targets, heating):
 
 
 class Handler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"  # needed for chunked responses
+
     def log_message(self, *a):
         pass
+
+    def flood(self, content_type, declared=False):
+        """Stream up to 500 MB and report how much the client accepted."""
+        chunk, sent, limit = b"x" * 65536, 0, 500 * 1024 * 1024
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        if declared:
+            self.send_header("Content-Length", str(limit))
+        else:
+            self.send_header("Transfer-Encoding", "chunked")
+        self.end_headers()
+        try:
+            while sent < limit:
+                self.wfile.write(chunk if declared else b"%x\r\n%s\r\n" % (len(chunk), chunk))
+                sent += len(chunk)
+        except OSError:
+            pass
+        print(f"[mock] {scenario['name']}: client stopped after {sent // 1024} KiB", flush=True)
+        self.close_connection = True
 
     def send_body(self, code, obj):
         body = json.dumps(obj).encode()
@@ -94,6 +123,9 @@ class Handler(BaseHTTPRequestHandler):
                                 "relative_path": ".thumbs/mock-300x300.png"}],
             })
             return
+        if path.endswith("/.thumbs/mock-300x300.png") and scenario["name"] == "huge-thumbnail":
+            self.flood("image/png")
+            return
         if path.endswith("/.thumbs/mock-300x300.png"):
             with open(args.thumbnail, "rb") as f:
                 body = f.read()
@@ -125,7 +157,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(502, str(e))
 
     def status(self):
-        state, progress, klippy, targets, message = SCENARIOS[scenario["name"]]
+        name = scenario["name"] if scenario["name"] in SCENARIOS else "printing"
+        state, progress, klippy, targets, message = SCENARIOS[name]
         heating = scenario["name"] == "heating"
         active = state in ("printing", "paused")
         elapsed = TOTAL * progress if progress else (95 if heating else 0)
@@ -153,7 +186,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = self.path.split("?")[0]
         if path == "/mock/scenarios":
-            self.send_json({"current": scenario["name"], "available": list(SCENARIOS)})
+            self.send_json({"current": scenario["name"], "available": list(SCENARIOS) + list(ABUSE)})
             return
         if not self.authorized():
             self.send_err(401, "Unauthorized")
@@ -169,6 +202,13 @@ class Handler(BaseHTTPRequestHandler):
             if scenario["name"] == "klippy-disconnected":
                 self.send_err(503, "Klippy Disconnected")
                 return
+            if scenario["name"] in ("flood", "flood-declared"):
+                self.flood("application/json", declared=scenario["name"] == "flood-declared")
+                return
+            if scenario["name"] == "hang":
+                time.sleep(60)
+                self.close_connection = True
+                return
             self.send_json({"status": self.status()})
         elif path.startswith("/server/files/"):
             self.proxy()
@@ -179,7 +219,7 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path.startswith("/mock/scenario/"):
             name = path.rsplit("/", 1)[1]
-            if name not in SCENARIOS:
+            if name not in SCENARIOS and name not in ABUSE:
                 self.send_err(404, "unknown scenario " + name)
                 return
             scenario["name"] = name

@@ -36,27 +36,42 @@ this widget's entry in `shell.json`.
 
 ## Talking to Moonraker
 
-All requests go through `XMLHttpRequest` from QML, so there are no external
-processes. When an API key is set it goes in the `X-Api-Key` header.
+Every request runs one short `curl` process (`curl --config -`). The URL, the
+`X-Api-Key` header, and the limits are written to curl's stdin, so the key never
+appears in the process list.
+
+Limits, enforced by curl while the data streams in:
+
+| Limit | Value | curl option |
+|-------|-------|-------------|
+| JSON response size | 1 MB | `max-filesize` |
+| Thumbnail size | 2 MB | `max-filesize` (partial files removed with `remove-on-error`) |
+| Whole request | 10 s | `max-time` |
+| Connecting | 5 s | `connect-timeout` |
+| Protocols | http, https | `proto` |
+
+Why not QML's `XMLHttpRequest`: its `abort()` only detaches the request from
+JavaScript. The transfer keeps running and buffering inside the shell, so an
+endless response from a broken or hostile endpoint grows the shell's memory
+until it crashes. curl closes the connection when a limit is hit.
+`dev/mock_moonraker.py` has `flood`, `flood-declared`, `hang`, and
+`huge-thumbnail` scenarios that check this.
 
 | When | Request |
 |------|---------|
 | First connect / after the URL or key changes | `GET /printer/objects/list`: finds the chamber sensor object |
 | Every poll | `GET /printer/objects/query?print_stats&virtual_sdcard&display_status&extruder&heater_bed&webhooks[&<chamber>]` |
 | When the file name changes | `GET /server/files/metadata?filename=…`: slicer estimate, layer count, thumbnails |
-| Popup open, with a thumbnail and an API key | `GET /access/oneshot_token` → image URL `…/server/files/gcodes/<thumb>?token=…` |
+| Popup open, when the job has a thumbnail | `GET /server/files/gcodes/<thumb>`, saved to `$XDG_RUNTIME_DIR/omarchy-moonraker/` and shown from there |
 | Pause / Resume / Cancel | `POST /printer/print/pause`, `/resume`, `/cancel` |
 
-`<img>`/`Image` elements can't send headers. With an API key set, the widget
-first gets a Moonraker one-shot token (valid for 5 seconds, single use) and
-puts it in the thumbnail URL instead.
 
 ### Polling
 
 - Every `pollInterval` seconds (default 5), or every 3 seconds or less while
   printing or while the popup is open.
-- One request at a time. QML's XHR has no reliable timeout, so a request that
-  runs for more than 8 seconds is aborted and the printer is reported unreachable.
+- One status request at a time. curl ends a request after 10 seconds, and the
+  printer is reported unreachable.
 - A `generation` counter is bumped whenever the URL or key changes, or the
   widget is destroyed. Responses from an older generation are dropped, so
   switching printers never mixes data.
@@ -113,4 +128,6 @@ contains "chamber" (ignoring thermal-protection sensors).
 - The API key lives in `shell.json` in plain text, like all widget settings.
 - `status` over IPC never includes the key.
 - `configure` accepts only the known setting keys.
-- The key is sent only to the configured URL.
+- The key is sent only to the configured URL, and only through curl's stdin.
+- Responses are size- and time-limited (see *Talking to Moonraker*), and curl
+  does not follow redirects.

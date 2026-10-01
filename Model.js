@@ -3,6 +3,14 @@
 // Pure helpers for the Moonraker bar widget. Everything here is free of QML
 // state so it can be unit-tested with plain node/qmltestrunner.
 
+// Hard limits for anything read from the printer. curl enforces them while
+// the data streams in, so a broken or hostile endpoint can't make the shell
+// buffer an unbounded response or hold a request open forever.
+var MAX_JSON_BYTES = 1048576      // Moonraker replies are a few KB
+var MAX_IMAGE_BYTES = 2097152     // slicer thumbnails are tens of KB
+var REQUEST_TIMEOUT_S = 10
+var CONNECT_TIMEOUT_S = 5
+
 var DISPLAY_MODES = ["icon", "progress", "full"]
 var TEMP_KEYS = ["nozzle", "bed", "chamber"]
 
@@ -249,4 +257,54 @@ function barText(data, display, temps) {
   }
 
   return parts.join("  ")
+}
+
+// ---------- curl transport ----------
+
+// A value for curl's config file syntax. Newlines are dropped so a value can
+// never start a new config line (and with it, a new option).
+function curlQuote(value) {
+  return "\"" + String(value).replace(/[\r\n]/g, "").replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\""
+}
+
+// Config fed to `curl --config -` on stdin, so the URL and API key never
+// appear in the process list.
+function curlConfig(opts) {
+  var lines = [
+    "url = " + curlQuote(opts.url),
+    "proto = \"=http,https\"",
+    "silent",
+    "max-filesize = " + opts.maxBytes,
+    "max-time = " + REQUEST_TIMEOUT_S,
+    "connect-timeout = " + CONNECT_TIMEOUT_S,
+    "write-out = \"\\n%{http_code} %{content_type}\""
+  ]
+  if (opts.method && opts.method !== "GET") lines.push("request = " + curlQuote(opts.method))
+  if (opts.apiKey) lines.push("header = " + curlQuote("X-Api-Key: " + opts.apiKey))
+  if (opts.output) {
+    lines.push("output = " + curlQuote(opts.output))
+    lines.push("create-dirs")
+    lines.push("remove-on-error")
+  }
+  return lines.join("\n") + "\n"
+}
+
+// stdout is the body (unless written to a file) followed by the write-out
+// trailer "\n<status> <content-type>".
+function parseCurlOutput(text) {
+  var s = String(text || "")
+  var cut = s.lastIndexOf("\n")
+  var trailer = cut >= 0 ? s.slice(cut + 1) : s
+  var space = trailer.indexOf(" ")
+  return {
+    body: cut >= 0 ? s.slice(0, cut) : "",
+    status: Number(space >= 0 ? trailer.slice(0, space) : trailer) || 0,
+    contentType: space >= 0 ? trailer.slice(space + 1) : ""
+  }
+}
+
+function curlError(exitCode, host) {
+  if (exitCode === 63) return { status: 0, tooLarge: true, message: "The printer sent an unexpectedly large response" }
+  if (exitCode === 28) return { status: 0, message: "Timed out reaching " + host }
+  return { status: 0, message: "No response from " + host }
 }

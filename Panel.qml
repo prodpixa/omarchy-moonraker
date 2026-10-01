@@ -63,7 +63,10 @@ Panel {
   property bool actionBusy: false
   property int generation: 0
   property var inflight: null
-  property real inflightSince: 0
+  // Running curl processes, so a reset or teardown can stop all of them.
+  property var activeRequests: []
+  property int thumbnailSerial: 0
+  readonly property string runtimeDir: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/omarchy-moonraker"
 
   readonly property bool printing: online && Model.isActiveState(printState)
   readonly property real remaining: printing
@@ -131,30 +134,74 @@ Panel {
   }
 
   // ---------- HTTP ----------
-  function request(method, path, onDone) {
+  // HTTP goes through curl rather than QML's XMLHttpRequest: aborting an XHR
+  // only detaches it from JavaScript while the transfer keeps filling memory,
+  // whereas curl stops the transfer at --max-filesize / --max-time. The URL
+  // and API key reach curl on stdin, never in argv. `binary` requests save the
+  // body to a file under $XDG_RUNTIME_DIR and return { file, type }.
+  function request(method, path, onDone, binary) {
     var gen = root.generation
-    var xhr = new XMLHttpRequest()
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState !== XMLHttpRequest.DONE) return
-      if (!root || gen !== root.generation) return
+    var host = Model.hostLabel(root.baseUrl)
+    var outFile = binary ? root.runtimeDir + "/thumbnail-" + (++root.thumbnailSerial % 2) : ""
+    var proc = curlComponent.createObject(root, {
+      config: Model.curlConfig({
+        url: root.baseUrl + path,
+        method: method,
+        apiKey: root.apiKey,
+        maxBytes: binary ? Model.MAX_IMAGE_BYTES : Model.MAX_JSON_BYTES,
+        output: outFile
+      })
+    })
+    proc.callback = function(exitCode, text) {
+      if (!root) return
+      root.untrackRequest(proc)
+      if (gen !== root.generation) return
+      if (exitCode !== 0) {
+        onDone(Model.curlError(exitCode, host), null)
+        return
+      }
+      var res = Model.parseCurlOutput(text)
+      var ok = res.status >= 200 && res.status < 300
+      if (binary) {
+        if (ok) onDone(null, { file: outFile, type: res.contentType })
+        else onDone({ status: res.status, message: "HTTP " + res.status }, null)
+        return
+      }
       var body = null
-      try { body = JSON.parse(xhr.responseText) } catch (e) {}
-      if (xhr.status >= 200 && xhr.status < 300 && body) {
+      try { body = JSON.parse(res.body) } catch (e) {}
+      if (ok && body) {
         onDone(null, body.result !== undefined ? body.result : body)
         return
       }
       var msg = ""
-      if (xhr.status === 0) msg = "No response from " + Model.hostLabel(root.baseUrl)
-      else if (xhr.status === 401 || xhr.status === 403)
+      if (res.status === 401 || res.status === 403)
         msg = root.apiKey === "" ? "This printer requires an API key" : "The printer rejected this API key"
       else if (body && body.error && body.error.message) msg = String(body.error.message)
-      else msg = "HTTP " + xhr.status
-      onDone({ status: xhr.status, auth: xhr.status === 401 || xhr.status === 403, message: msg }, body)
+      else msg = "HTTP " + res.status
+      onDone({ status: res.status, auth: res.status === 401 || res.status === 403, message: msg }, body)
     }
-    xhr.open(method, root.baseUrl + path)
-    if (root.apiKey !== "") xhr.setRequestHeader("X-Api-Key", root.apiKey)
-    xhr.send()
-    return xhr
+    root.trackRequest(proc)
+    proc.running = true
+    return proc
+  }
+
+  function trackRequest(proc) {
+    activeRequests.push(proc)
+  }
+
+  function untrackRequest(proc) {
+    var i = activeRequests.indexOf(proc)
+    if (i >= 0) activeRequests.splice(i, 1)
+  }
+
+  function abortAll() {
+    var list = activeRequests.slice()
+    activeRequests = []
+    inflight = null
+    for (var i = 0; i < list.length; i++) {
+      list[i].callback = null
+      list[i].running = false
+    }
   }
 
   function markOffline(err) {
@@ -167,19 +214,12 @@ Panel {
 
   function poll() {
     if (!configured) return
-    if (inflight) {
-      // XHR has no reliable timeout in QML; abort a request that hangs.
-      if (Date.now() - inflightSince < 8000) return
-      var stale = inflight
-      inflight = null
-      stale.abort()
-      markOffline({ message: "Timed out reaching " + Model.hostLabel(baseUrl) })
-    }
+    // One status request at a time; curl ends one that hangs after 10 s.
+    if (inflight) return
     if (!objectsProbed) {
       probeObjects()
       return
     }
-    inflightSince = Date.now()
     inflight = request("GET", Model.queryPath(chamberObject), function(err, result) {
       root.inflight = null
       if (err) {
@@ -201,7 +241,6 @@ Panel {
   }
 
   function probeObjects() {
-    inflightSince = Date.now()
     inflight = request("GET", "/printer/objects/list", function(err, result) {
       root.inflight = null
       if (err) {
@@ -261,30 +300,26 @@ Panel {
     })
   }
 
-  // Image elements can't send headers, so with an API key we trade it for a
-  // Moonraker one-shot token and pass that as a query parameter.
+  // Thumbnails go through request() like everything else, so they get the
+  // same size/time caps and the X-Api-Key header. Two alternating files make
+  // the Image reload. A thumbnail that was too large isn't retried.
   function loadThumbnail() {
     var rel = Model.thumbnailPath(filename, fileMeta)
     if (rel === "" || thumbnailFor === rel) return
     thumbnailFor = rel
-    var url = baseUrl + "/server/files/gcodes/" + Model.encodePath(rel)
-    if (apiKey === "") {
-      thumbnailSource = url
-      return
-    }
-    request("GET", "/access/oneshot_token", function(err, token) {
-      if (err || root.thumbnailFor !== rel) {
-        root.thumbnailFor = ""
+    request("GET", "/server/files/gcodes/" + Model.encodePath(rel), function(err, img) {
+      if (root.thumbnailFor !== rel) return
+      if (err) {
+        if (!err.tooLarge) root.thumbnailFor = ""
         return
       }
-      root.thumbnailSource = url + "?token=" + encodeURIComponent(String(token))
-    })
+      root.thumbnailSource = "file://" + img.file + "?" + root.thumbnailSerial
+    }, true)
   }
 
   function reset() {
     generation++
-    if (inflight) inflight.abort()
-    inflight = null
+    abortAll()
     online = false
     everConnected = false
     authFailed = false
@@ -345,7 +380,50 @@ Panel {
   Component.onCompleted: poll()
   Component.onDestruction: {
     generation++
-    if (inflight) inflight.abort()
+    abortAll()
+  }
+
+  // One curl per request. The callback runs once both the process has exited
+  // and its stdout is complete; stopping a request clears the callback first.
+  Component {
+    id: curlComponent
+
+    Process {
+      id: curl
+      property string config: ""
+      property var callback: null
+      property int exitCode: -1
+      property bool exited: false
+      property bool streamEnded: false
+      property bool finished: false
+
+      function finish() {
+        if (finished || !exited || !streamEnded) return
+        finished = true
+        var cb = callback
+        callback = null
+        if (cb) cb(exitCode, collector.text)
+        curl.destroy()
+      }
+
+      command: ["curl", "--config", "-"]
+      stdinEnabled: true
+      stdout: StdioCollector {
+        id: collector
+        waitForEnd: true
+        onStreamFinished: { curl.streamEnded = true; curl.finish() }
+      }
+      onStarted: {
+        write(config)
+        config = ""
+        stdinEnabled = false
+      }
+      onExited: function(code) {
+        exitCode = code
+        exited = true
+        finish()
+      }
+    }
   }
 
   IpcHandler {
@@ -589,6 +667,11 @@ Panel {
               anchors.fill: parent
               anchors.margins: Style.space(4)
               source: root.thumbnailSource
+              // Decode at display size; Qt's image allocation limit also
+              // rejects absurd dimensions packed into a small file.
+              sourceSize.width: Style.space(184)
+              sourceSize.height: Style.space(184)
+              cache: false
               fillMode: Image.PreserveAspectFit
               asynchronous: true
               smooth: true

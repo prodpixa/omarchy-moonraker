@@ -55,6 +55,12 @@ Scenarios: `idle`, `heating`, `printing-start`, `printing`, `printing-end`,
 `paused`, `complete`, `cancelled`, `error`, `klippy-startup`,
 `klippy-shutdown`, `klippy-disconnected`.
 
+Misbehaving-server scenarios, for checking the response limits: `flood` (endless
+chunked body), `flood-declared` (500 MB `Content-Length`), `hang` (never
+answers), and `huge-thumbnail` (endless thumbnail). The mock prints how much
+the client accepted before it hung up; the widget should report an error and
+the shell's memory should stay flat (`ps -o rss= -p $(pgrep -f quickshell)`).
+
 ## Screenshots of every state
 
 ```bash
