@@ -130,6 +130,7 @@ appears under the title.
 | `progress` | ![](screenshots/13-bar-progress-bar.png) |
 | `full` | ![](screenshots/13-bar-full-bar.png) |
 | `full`, idle | ![](screenshots/13-bar-full-idle-bar.png) |
+| Idle with **Compact when not printing** (a dimmed icon that stays clickable) | ![](screenshots/13-bar-compact-idle-bar.png) |
 
 Settings open on top of a running print. The API key field is masked.
 

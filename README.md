@@ -85,6 +85,7 @@ but keeps the folder.
 | `progress` | ![progress](docs/screenshots/13-bar-progress-bar.png) |
 | `full` | ![full](docs/screenshots/13-bar-full-bar.png) |
 | `full` while idle | ![full idle](docs/screenshots/13-bar-full-idle-bar.png) |
+| any style, idle, with **Compact when not printing** | ![compact idle](docs/screenshots/13-bar-compact-idle-bar.png) |
 
 When the printer is offline the icon dims and changes to a network-disconnect
 glyph. Auth problems show a lock. Klipper problems and print errors switch the

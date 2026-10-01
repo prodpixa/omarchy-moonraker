@@ -12,6 +12,7 @@
 - Thumbnails are fetched with the API key header directly; the one-shot token
   round trip is gone.
 - Mock printer gains `flood`, `flood-declared`, `hang`, and `huge-thumbnail` scenarios.
+- Screenshots and preview regenerated for the new "Compact when not printing" toggle, plus a compact-idle bar shot.
 
 ## 0.1.1 — 2026-09-30
 

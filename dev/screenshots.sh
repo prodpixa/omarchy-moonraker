@@ -102,7 +102,8 @@ MOCK_PID=$!
 # Leave only this widget in the right section. A layout edit from outside the
 # shell doesn't always bring third-party IPC targets back, so restart it.
 tmp=$(mktemp)
-jq --argjson entry "$ORIGINAL" '.bar.layout.right = [$entry]' "$CFG" >"$tmp"
+jq --arg id "$ID" --argjson entry "$ORIGINAL" \
+  '(.bar.layout[] |= map(select(.id != $id))) | .bar.layout.right = [$entry]' "$CFG" >"$tmp"
 cat "$tmp" >"$CFG"
 rm -f "$tmp"
 omarchy restart shell >/dev/null 2>&1
@@ -110,7 +111,7 @@ for _ in $(seq 60); do omarchy-shell "$ID" status >/dev/null 2>&1 && break; slee
 sleep 2
 
 # ---- Setup / login ----
-set_entry '{"url":"","apiKey":"","display":"full","temps":["nozzle","bed","chamber"],"hideWhenIdle":false,"hideWhenOffline":false}'
+set_entry '{"url":"","apiKey":"","display":"full","temps":["nozzle","bed","chamber"],"compactWhenIdle":false,"hideWhenIdle":false,"hideWhenOffline":false}'
 sleep 1; capture 01-not-configured
 
 set_entry '{"url":"http://127.0.0.1:7999"}'
@@ -146,6 +147,9 @@ done
 scenario idle
 set_entry '{"display":"full"}'
 sleep 1; capture 13-bar-full-idle bar-only
+set_entry '{"compactWhenIdle":true}'
+sleep 1; capture 13-bar-compact-idle bar-only
+set_entry '{"compactWhenIdle":false}'
 
 scenario printing
 capture 14-settings settings
